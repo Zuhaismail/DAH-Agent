@@ -7,9 +7,20 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
-const logger = require("firebase-functions/logger");
+import { setGlobalOptions } from "firebase-functions";
+import { onRequest } from "firebase-functions/https";
+import logger from "firebase-functions/logger";
+// import { greetUser } from "./greetUser.js"; // note .js extension
+
+// setGlobalOptions({ maxInstances: 10 });
+
+// export const helloUser = onRequest(async (req, res) => {
+//   const name = req.query.name || "friend";
+//   const message = await greetUser({ name });
+//   logger.info("Greeted user:", { name });
+//   res.send(message);
+// });
+
 
 // For cost control, you can set the maximum number of containers that can be
 // running at the same time. This helps mitigate the impact of unexpected
