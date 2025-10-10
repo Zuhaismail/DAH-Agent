@@ -1,0 +1,140 @@
+/* 🌤 Modern Weather Dashboard CSS */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #74ebd5, #acb6e5);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #222;
+}
+
+header {
+  text-align: center;
+  padding: 2rem 1rem;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+header h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #222;
+}
+
+header p {
+  color: #333;
+  font-size: 1rem;
+}
+
+main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+}
+
+.search-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.search-box input {
+  padding: 0.7rem 1rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 10px;
+  width: 280px;
+  outline: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.search-box button {
+  background: #0078d7;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.7rem 1.5rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+
+.search-box button:hover {
+  background: #005bb5;
+}
+
+.weather-info {
+  width: 100%;
+  max-width: 500px;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  animation: fadeIn 0.5s ease-in;
+}
+
+.weather-card h2 {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.weather-main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.weather-icon {
+  width: 80px;
+  height: 80px;
+}
+
+.alerts {
+  background: #ffebee;
+  border-left: 5px solid #d32f2f;
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 10px;
+  text-align: left;
+}
+
+.alerts h3 {
+  margin-bottom: 0.5rem;
+  color: #b71c1c;
+}
+
+.alerts ul {
+  margin-left: 1.2rem;
+  list-style-type: "⚠ ";
+}
+
+footer {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.25);
+  font-size: 0.9rem;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+
+

@@ -1,90 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Pakistan Weather Checker</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 40px auto;
-      padding: 20px;
-      background-color: #f0f8ff;
-    }
-    h1 {
-      text-align: center;
-      color: #333;
-    }
-    input, button {
-      padding: 10px;
-      margin: 5px 0;
-      width: 100%;
-      box-sizing: border-box;
-    }
-    #weather {
-      margin-top: 20px;
-      padding: 15px;
-      background-color: #e0f7fa;
-      border-radius: 8px;
-    }
-    p {
-      margin: 5px 0;
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🌤 Pakistan Live Weather Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Pakistan Weather Checker</h1>
-  <input type="text" id="city" placeholder="Enter city name (Pakistan)" />
-  <button id="getWeather">Get Weather</button>
+  <header>
+    <h1>🌤 Pakistan Live Weather Dashboard</h1>
+    <p>Built with Firebase Functions + OpenWeather API</p>
+  </header>
 
-  <div id="weather"></div>
+  <main>
+    <div class="search-box">
+      <input
+        type="text"
+        id="cityInput"
+        placeholder="Enter city name (e.g., Karachi)"
+      />
+      <button id="getWeatherBtn">Get Weather</button>
+    </div>
 
-  <script>
-    const apiKey = "c49eeb16a1e03e752c53a31ca49bf180"; // your API key
+    <div id="weather-info" class="weather-info"></div>
+  </main>
 
-    document.getElementById("getWeather").addEventListener("click", async () => {
-      const city = document.getElementById("city").value.trim();
+  <footer>
+    <p>⚡ Powered by Firebase | OpenWeather | Hackathon 2025</p>
+  </footer>
 
-      if (!city) {
-        alert("Please enter a city name!");
-        return;
-      }
-
-      const weatherDiv = document.getElementById("weather");
-      weatherDiv.innerHTML = "<p>Loading...</p>";
-
-      try {
-        const res = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${city},PK&units=metric&appid=${apiKey}`
-        );
-        const data = await res.json();
-
-        if (data.cod === 200) {
-          const weather = data.weather[0];
-          const main = data.main;
-          const wind = data.wind;
-          const rain = data.rain ? data.rain["1h"] : 0;
-          const snow = data.snow ? data.snow["1h"] : 0;
-
-          weatherDiv.innerHTML = `
-            <h2>${data.name}, ${data.sys.country}</h2>
-            <p><strong>Weather:</strong> ${weather.main} (${weather.description})</p>
-            <p><strong>Temperature:</strong> ${main.temp} °C</p>
-            <p><strong>Feels Like:</strong> ${main.feels_like} °C</p>
-            <p><strong>Humidity:</strong> ${main.humidity}%</p>
-            <p><strong>Wind Speed:</strong> ${wind.speed} m/s</p>
-            <p><strong>Rain (last 1h):</strong> ${rain} mm</p>
-            <p><strong>Snow (last 1h):</strong> ${snow} mm</p>
-          `;
-        } else {
-          weatherDiv.innerHTML = `<p>City not found or invalid. Make sure the city is in Pakistan.</p>`;
-        }
-      } catch (err) {
-        weatherDiv.innerHTML = `<p>Error fetching weather data. Try again later.</p>`;
-        console.error(err);
-      }
-    });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
+
+
+
 
 

@@ -1,43 +1,55 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+// index.js
+import express from "express";
+import axios from "axios";
+import cors from "cors";
+import dotenv from "dotenv";
+import admin from "firebase-admin";
+import { onRequest } from "firebase-functions/v2/https";
 
-import { setGlobalOptions } from "firebase-functions";
-import { onRequest } from "firebase-functions/https";
-import logger from "firebase-functions/logger";
-// import { greetUser } from "./greetUser.js"; // note .js extension
+dotenv.config();
+admin.initializeApp();
 
-// setGlobalOptions({ maxInstances: 10 });
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-// export const helloUser = onRequest(async (req, res) => {
-//   const name = req.query.name || "friend";
-//   const message = await greetUser({ name });
-//   logger.info("Greeted user:", { name });
-//   res.send(message);
-// });
+// ✅ Weather API Key
+const API_KEY = process.env.WEATHER_KEY;
+
+// ✅ Route to fetch weather data
+app.get("/weather/:city", async (req, res) => {
+  const { city } = req.params;
+
+  try {
+    const response = await axios.get(
+      `https://api.openweathermap.org/data/2.5/weather?q=${city},PK&appid=${API_KEY}&units=metric`
+    );
+
+    const data = response.data;
+    const weather = {
+      city: data.name,
+      temp: data.main.temp,
+      humidity: data.main.humidity,
+      windSpeed: data.wind.speed,
+      description: data.weather[0].description,
+      main: data.weather[0].main,
+    };
+
+    // Example alert logic
+    const alerts = [];
+    if (weather.main.includes("Rain")) alerts.push("⚠ Flood Alert");
+    if (weather.temp > 40) alerts.push("🔥 Heatwave Alert");
+
+    res.json({ weather, alerts });
+  } catch (error) {
+    console.error("❌ Error fetching weather:", error.message);
+    res.status(500).json({ error: "Failed to fetch weather data" });
+  }
+});
+
+// ✅ Export the Express app as a Firebase Function
+export const api = onRequest(app);
 
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
