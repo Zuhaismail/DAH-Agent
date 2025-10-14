@@ -1,58 +1,324 @@
+// public/script.js
+const weatherBox = document.getElementById("weather-info");
+const forecastBox = document.getElementById("forecast");
+const hourlyCanvas = document.getElementById("hourlyChart");
+const hourlyTableContainerId = "hourly-table-container";
+let hourlyChart = null;
+
+// create hourly table container if not present (in case user didn't add in HTML)
+let hourlyTableContainer = document.getElementById(hourlyTableContainerId);
+if (!hourlyTableContainer) {
+  hourlyTableContainer = document.createElement("div");
+  hourlyTableContainer.id = hourlyTableContainerId;
+  hourlyTableContainer.className = "table-section";
+  document.querySelector("main").insertBefore(hourlyTableContainer, document.getElementById("forecast"));
+}
+
+// forecast detail table container
+let forecastTableContainer = document.getElementById("forecast-table-container");
+if (!forecastTableContainer) {
+  forecastTableContainer = document.createElement("div");
+  forecastTableContainer.id = "forecast-table-container";
+  forecastTableContainer.className = "table-section";
+  document.querySelector("main").appendChild(forecastTableContainer);
+}
+
+// baseURL toggles between emulator and deployed site
+const baseURL = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ? "http://127.0.0.1:5001/dah-agent/us-central1/api"
+  : "/api";
+
+// buttons & input
+const cityInput = document.getElementById("cityInput");
 document.getElementById("getWeatherBtn").addEventListener("click", async () => {
-  const city = document.getElementById("cityInput").value.trim();
-  const weatherBox = document.getElementById("weather-info");
+  const city = cityInput.value.trim();
+  if (!city) return alert("Please enter a city name.");
+  await fetchWeatherByCity(city);
+});
 
-  weatherBox.innerHTML = "";
-
-  if (!city) {
-    weatherBox.innerHTML = "<p>Please enter a city name.</p>";
-    return;
-  }
-
-  try {
-    // Step 1️⃣: Call your Firebase function route (not direct API)
-    const response = await fetch(`http://localhost:5001/dah-agent/us-central1/api/weather/${city}`);
-    const data = await response.json();
-
-    if (!response.ok) {
-      weatherBox.innerHTML = `<p>${data.error || "Failed to fetch weather data."}</p>`;
-      return;
-    }
-
-    const weather = data.weather;
-    const alerts = data.alerts;
-    const helpMessage = data.helpMessage;
-
-    const icon = getWeatherIcon(weather.weatherMain);
-
-    // Step 2️⃣: Display the data beautifully
-    weatherBox.innerHTML = `
-      <div class="weather-card">
-        <h2>${weather.city}</h2>
-        <div class="weather-main">
-          <img src="${icon}" alt="icon" class="weather-icon">
-          <div>
-            <p><strong>${weather.weatherMain}</strong> — ${weather.description}</p>
-            <p><strong>🌡 Temp:</strong> ${weather.temp}°C</p>
-            <p><strong>💧 Humidity:</strong> ${weather.humidity}%</p>
-            <p><strong>🌬 Wind:</strong> ${weather.windSpeed} m/s</p>
-            <p><strong>👁 Visibility:</strong> ${weather.visibility} m</p>
-          </div>
-        </div>
-        ${
-          alerts.length
-            ? `<div class="alerts"><h3>⚠ Alerts:</h3><ul>${alerts.map(a => `<li>${a}</li>`).join("")}</ul></div>`
-            : `<p>${helpMessage}</p>`
-        }
-      </div>
-    `;
-  } catch (error) {
-    console.error(error);
-    weatherBox.innerHTML = "<p>Failed to fetch weather data.</p>";
+// Enter key triggers search
+cityInput.addEventListener("keydown", async (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    const city = cityInput.value.trim();
+    if (!city) return;
+    await fetchWeatherByCity(city);
   }
 });
 
-// 🌤 Optional helper for weather icons
+document.getElementById("getLocationBtn").addEventListener("click", () => {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => fetchWeatherByCoords(pos.coords.latitude, pos.coords.longitude),
+      err => alert("Location access denied. " + (err.message || ""))
+    );
+  } else {
+    alert("Geolocation not supported by this browser.");
+  }
+});
+
+async function fetchWeatherByCity(city) {
+  resetDisplays();
+  weatherBox.innerHTML = "<p>Loading...</p>";
+  try {
+    const res = await fetch(`${baseURL}/weather/${encodeURIComponent(city)}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      weatherBox.innerHTML = `<p>Error: ${err.message || JSON.stringify(err)}</p>`;
+      return;
+    }
+    const data = await res.json();
+    displayWeather(data);
+  } catch (e) {
+    console.error("Fetch error:", e);
+    weatherBox.innerHTML = "<p>Failed to fetch weather data.</p>";
+  }
+}
+
+async function fetchWeatherByCoords(lat, lon) {
+  resetDisplays();
+  weatherBox.innerHTML = "<p>Loading location weather...</p>";
+  try {
+    const res = await fetch(`${baseURL}/geo?lat=${lat}&lon=${lon}`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: res.statusText }));
+      weatherBox.innerHTML = `<p>Error: ${err.message || JSON.stringify(err)}</p>`;
+      return;
+    }
+    const data = await res.json();
+    displayWeather(data);
+  } catch (e) {
+    console.error("Fetch error:", e);
+    weatherBox.innerHTML = "<p>Failed to fetch weather data.</p>";
+  }
+}
+
+function resetDisplays() {
+  if (hourlyChart) { hourlyChart.destroy(); hourlyChart = null; }
+  hourlyCanvas.style.display = "none";
+  hourlyTableContainer.innerHTML = "";
+  forecastBox.innerHTML = "";
+  forecastTableContainer.innerHTML = "";
+}
+
+function displayWeather(data) {
+  if (!data || data.error) {
+    weatherBox.innerHTML = `<p>Error: ${data?.error?.message || data?.error || "No data"}</p>`;
+    return;
+  }
+
+  const w = data.weather;
+  const icon = getWeatherIcon(w.weatherMain);
+
+  weatherBox.innerHTML = `
+    <div class="weather-card">
+      <h2>${w.city}</h2>
+      <div class="weather-main">
+        <img src="${icon}" alt="icon" class="weather-icon">
+        <div>
+          <p><strong>${w.weatherMain}</strong> — ${w.description}</p>
+          <p><strong>🌡 Temp:</strong> ${round(w.temp)}°C</p>
+          <p><strong>💧 Humidity:</strong> ${w.humidity}%</p>
+          <p><strong>🌬 Wind:</strong> ${w.windSpeed} m/s</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+
+
+  renderHourlyChart(data.hourly || [], data.timezoneOffset || 0);
+  renderHourlyTable(data.hourly || [], data.timezoneOffset || 0);
+  renderForecast(data.daily || [], data.timezoneOffset || 0);
+  renderForecastTable(data.daily || data.daily || [], data.timezoneOffset || 0);
+}
+
+/* Chart: each interpolated hour will be shown */
+function renderHourlyChart(hourly, timezoneOffset = 0) {
+  if (!hourly || hourly.length === 0) {
+    if (hourlyChart) { hourlyChart.destroy(); hourlyChart = null; }
+    hourlyCanvas.style.display = "none";
+    return;
+  }
+  hourlyCanvas.style.display = "block";
+  const ctx = hourlyCanvas.getContext("2d");
+
+  if (hourlyChart) hourlyChart.destroy();
+
+  const labels = hourly.map(h => formatHourLabel(h.dt, timezoneOffset));
+  const temps = hourly.map(h => h.temp);
+
+  hourlyChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [{
+        label: "Temperature (°C)",
+        data: temps,
+        borderColor: "#00bcd4",
+        backgroundColor: "rgba(0,188,212,0.2)",
+        fill: true,
+        tension: 0.3,
+        pointRadius: 1
+      }]
+    },
+    options: {
+      plugins: { legend: { labels: { color: "#fff" } } },
+      scales: {
+        x: {
+          ticks: { color: "#ccc", autoSkip: false, maxRotation: 45, minRotation: 0 },
+          grid: { color: "#333" }
+        },
+        y: { ticks: { color: "#ccc" }, grid: { color: "#333" } }
+      },
+      responsive: true,
+      maintainAspectRatio: false,
+    }
+  });
+
+  hourlyCanvas.parentElement.style.height = "320px";
+}
+
+function renderHourlyTable(hourly, timezoneOffset = 0) {
+  if (!hourly || hourly.length === 0) {
+    hourlyTableContainer.innerHTML = "";
+    return;
+  }
+
+  const rows = hourly.slice(0, 24).map(h => {
+    const time = formatHourLabel(h.dt, timezoneOffset);
+    const temp = `${round(h.temp)}°C`;
+    const cond = h.weather?.[0]?.description || "";
+    const iconUrl = h.weather?.[0]?.icon ? `https://openweathermap.org/img/wn/${h.weather[0].icon}@2x.png` : "";
+    const humidity = `${h.humidity ?? "-"}%`;
+    const wind = `${round(h.wind_speed ?? h.windSpeed ?? 0)} m/s`;
+    return `
+      <tr>
+        <td>${time}</td>
+        <td>${temp}</td>
+        <td>${cond} ${iconUrl ? `<img src="${iconUrl}" width="36" style="vertical-align:middle;">` : ""}</td>
+        <td>${humidity}</td>
+        <td>${wind}</td>
+      </tr>
+    `;
+  }).join("");
+
+  hourlyTableContainer.innerHTML = `
+    <h3>Hourly (next ${Math.min(24, hourly.length)} hours)</h3>
+    <div class="table-wrap">
+      <table class="hourly-table">
+        <thead>
+          <tr><th>Time</th><th>Temp</th><th>Condition</th><th>Humidity</th><th>Wind</th></tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderForecast(daily, timezoneOffset = 0) {
+  if (!daily || daily.length === 0) {
+    forecastBox.innerHTML = "<p>No forecast available.</p>";
+    return;
+  }
+
+  const cards = daily.slice(0, 7).map(d => {
+    const icon = d.rawItems?.[0]?.weather?.[0]?.icon ? `https://openweathermap.org/img/wn/${d.rawItems[0].weather[0].icon}@2x.png` : getWeatherIcon(d.weather);
+    const dayName = d.day;
+    const temp = `${d.temp}°C`;
+    const desc = d.weather;
+    return `
+      <div class="forecast-card">
+        <p><strong>${dayName}</strong></p>
+        <img src="${icon}" width="60" alt="icon"/>
+        <p>${temp}</p>
+        <p>${desc}</p>
+      </div>
+    `;
+  }).join("");
+
+  forecastBox.innerHTML = cards;
+}
+
+
+
+function renderForecastTable(daily, timezoneOffset = 0) {
+  if (!daily || daily.length === 0) {
+    forecastTableContainer.innerHTML = "";
+    return;
+  }
+
+  const rows = daily.slice(0, 7).map(d => {
+    const day = d.day;
+
+    // find min/max from rawItems if present
+    let min = "-", max = "-";
+    if (d.rawItems && d.rawItems.length) {
+      const temps = d.rawItems.map(it => it.main.temp);
+      min = `${Math.round(Math.min(...temps))}°C`;
+      max = `${Math.round(Math.max(...temps))}°C`;
+    } else if (d.temp && typeof d.temp === "object") {
+      min = `${Math.round(d.temp.min)}°C`;
+      max = `${Math.round(d.temp.max)}°C`;
+    } else {
+      min = max = `${Math.round(d.temp)}°C`;
+    }
+
+    // 🌧️ calculate total precipitation for the day
+    let precipTotal = 0;
+    if (d.rawItems && d.rawItems.length) {
+      d.rawItems.forEach(it => {
+        const rain = it.rain?.["3h"] || 0;
+        const snow = it.snow?.["3h"] || 0;
+        precipTotal += rain + snow;
+      });
+    }
+
+    // 📝 assign label based on precipitation intensity
+    let precipLabel = "No rain";
+    if (precipTotal > 0 && precipTotal <= 2) precipLabel = "Light rain";
+    else if (precipTotal > 2 && precipTotal <= 10) precipLabel = "Moderate rain";
+    else if (precipTotal > 10) precipLabel = "Heavy rain";
+
+    const desc = d.weather || "-";
+    const iconUrl = d.rawItems?.[0]?.weather?.[0]?.icon
+      ? `https://openweathermap.org/img/wn/${d.rawItems[0].weather[0].icon}@2x.png`
+      : "";
+
+    return `
+      <tr>
+        <td>${day}</td>
+        <td>${min} / ${max}</td>
+        <td>${desc} ${iconUrl ? `<img src="${iconUrl}" width="36" style="vertical-align:middle;">` : ""}</td>
+        <td>${round(precipTotal)} mm (${precipLabel})</td>
+      </tr>
+    `;
+  }).join("");
+
+  forecastTableContainer.innerHTML = `
+    <h3>7-day Forecast Details</h3>
+    <div class="table-wrap">
+      <table class="forecast-table">
+        <thead>
+          <tr><th>Day</th><th>Min / Max</th><th>Condition</th><th>Precip</th></tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+
+
+
+
+
+
+
 function getWeatherIcon(condition) {
   const icons = {
     Clear: "https://openweathermap.org/img/wn/01d@2x.png",
@@ -66,7 +332,13 @@ function getWeatherIcon(condition) {
   return icons[condition] || icons["Clear"];
 }
 
+function formatHourLabel(dtSec, timezoneOffset = 0) {
+  if (!dtSec) return "";
+  const date = new Date((dtSec + (timezoneOffset || 0)) * 1000);
+  return date.toLocaleTimeString("en-PK", { hour: "numeric", hour12: true });
+}
 
+function round(v) { return Math.round(v * 10) / 10; }
 
 
 

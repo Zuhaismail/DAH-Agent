@@ -3,37 +3,42 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🌤 Pakistan Live Weather Dashboard</title>
+  <title>🌙 Pakistan Live Weather Dashboard</title>
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <header>
-    <h1>🌤 Pakistan Live Weather Dashboard</h1>
-    <p>Built with Firebase Functions + OpenWeather API</p>
+    <h1>🌙 Pakistan Live Weather Dashboard</h1>
+    <p>Powered by Firebase Functions + OpenWeather API</p>
   </header>
 
   <main>
     <div class="search-box">
-      <input
-        type="text"
-        id="cityInput"
-        placeholder="Enter city name (e.g., Karachi)"
-      />
-      <button id="getWeatherBtn">Get Weather</button>
+      <input type="text" id="cityInput" placeholder="Enter city name (e.g., Karachi)" />
+      <button id="getWeatherBtn">Search</button>
+      <button id="getLocationBtn" class="loc-btn">📍 Use My Location</button>
     </div>
 
     <div id="weather-info" class="weather-info"></div>
+
+    <div class="chart-container">
+      <canvas id="hourlyChart"></canvas>
+    </div>
+
+    <div id="hourly-table-container" class="table-section"></div>
+
+    <div id="forecast" class="forecast"></div>
+
+    <div id="forecast-table-container" class="table-section"></div>
   </main>
 
   <footer>
-    <p>⚡ Powered by Firebase | OpenWeather | Hackathon 2025</p>
+    <p>⚡ Hackathon 2025 | Firebase | OpenWeather</p>
   </footer>
 
   <script src="script.js"></script>
 </body>
 </html>
-
-
-
 
 
