@@ -313,12 +313,6 @@ function renderForecastTable(daily, timezoneOffset = 0) {
 }
 
 
-
-
-
-
-
-
 function getWeatherIcon(condition) {
   const icons = {
     Clear: "https://openweathermap.org/img/wn/01d@2x.png",

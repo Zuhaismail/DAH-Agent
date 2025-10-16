@@ -3,42 +3,73 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>🌙 Pakistan Live Weather Dashboard</title>
-  <link rel="stylesheet" href="style.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>🇵🇰 Pakistan Weather & Disaster Portal</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Poppins", sans-serif; }
+    body {
+      height: 100vh;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+    }
+    h1 {
+      font-size: 2.3rem;
+      margin-bottom: 40px;
+      text-align: center;
+    }
+    .btn-container {
+      display: flex;
+      gap: 25px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    button {
+      padding: 15px 35px;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.3s;
+      color: white;
+    }
+    .weather-btn {
+      background: linear-gradient(45deg, #2193b0, #6dd5ed);
+    }
+    .alert-btn {
+      background: linear-gradient(45deg, #ff512f, #dd2476);
+    }
+    button:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+    }
+    footer {
+      position: absolute;
+      bottom: 15px;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>🌙 Pakistan Live Weather Dashboard</h1>
-    <p>Powered by Firebase Functions + OpenWeather API</p>
-  </header>
+  <h1>Pakistan Weather & Disaster Portal</h1>
 
-  <main>
-    <div class="search-box">
-      <input type="text" id="cityInput" placeholder="Enter city name (e.g., Karachi)" />
-      <button id="getWeatherBtn">Search</button>
-      <button id="getLocationBtn" class="loc-btn">📍 Use My Location</button>
-    </div>
+  <div class="btn-container">
+    <button class="weather-btn" onclick="openWeather()">🌦️ Current Weather</button>
+    <button class="alert-btn" onclick="openDisaster()">⚠️ Disaster Alerts</button>
+  </div>
 
-    <div id="weather-info" class="weather-info"></div>
+  <footer>Developed by Zuha & Quntara</footer>
 
-    <div class="chart-container">
-      <canvas id="hourlyChart"></canvas>
-    </div>
-
-    <div id="hourly-table-container" class="table-section"></div>
-
-    <div id="forecast" class="forecast"></div>
-
-    <div id="forecast-table-container" class="table-section"></div>
-  </main>
-
-  <footer>
-    <p>⚡ Hackathon 2025 | Firebase | OpenWeather</p>
-  </footer>
-
-  <script src="script.js"></script>
+  <script>
+    function openWeather() {
+      window.location.href = "weather.html"; // your current weather dashboard
+    }
+    function openDisaster() {
+      window.location.href = "disaster.html"; // new page you’ll create
+    }
+  </script>
 </body>
 </html>
-
-

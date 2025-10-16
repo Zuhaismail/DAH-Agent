@@ -210,3 +210,21 @@ app.get("/geo", async (req, res) => {
 // Export function
 export const api = onRequest(app);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
